@@ -68,3 +68,10 @@ echo "Updating system packages..."
 yum update -y
 
 echo "Baseline Security Configuration Completed!"
+
+# For best results, schedule Bash script as a cron job for ongoing security compliance.
+crontab -e
+
+0 2 * * * /path/to/baseline_security.sh >> /var/log/baseline_security.log 2>&1  # To run baseline_security.sh every day at 2 AM
+
+
