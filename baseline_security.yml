@@ -1,0 +1,111 @@
+---
+- name: Baseline Security Configuration for RHEL 8
+  hosts: all
+  become: yes
+  tasks:
+
+    # Disable Unused Services
+    - name: Disable Unused Services
+      systemd:
+        name: "{{ item }}"
+        enabled: no
+        state: stopped
+      loop:
+        - bluetooth
+        - cups
+        - rpcbind
+
+    # Configure Password Policy
+    - name: Set Strong Password Policy
+      lineinfile:
+        path: /etc/security/pwquality.conf
+        line: "{{ item }}"
+        create: yes
+      loop:
+        - "minlen = 12"
+        - "dcredit = -1"
+        - "ucredit = -1"
+        - "ocredit = -1"
+        - "lcredit = -1"
+
+    # Install Fail2Ban for SSH Lockout
+    - name: Install and Enable Fail2Ban
+      yum:
+        name: fail2ban
+        state: present
+    - name: Enable and Start Fail2Ban
+      systemd:
+        name: fail2ban
+        enabled: yes
+        state: started
+
+    # Add a Secure User
+    - name: Create Secure User
+      user:
+        name: secureadmin
+        password: "{{ 'SecureP@ssw0rd' | password_hash('sha512') }}"
+        groups: wheel
+        append: yes
+        state: present
+
+    # Configure Sudoers for No Password
+    - name: Allow Secure User Passwordless Sudo
+      lineinfile:
+        path: /etc/sudoers
+        line: "secureadmin ALL=(ALL) NOPASSWD:ALL"
+        validate: "visudo -cf %s"
+
+    # Enable Logging and Monitoring
+    - name: Ensure Journal Logs Persist
+      lineinfile:
+        path: /etc/systemd/journald.conf
+        line: "Storage=persistent"
+    - name: Restart Systemd Journald
+      systemd:
+        name: systemd-journald
+        state: restarted
+
+    # Configure Firewall Rules
+    - name: Ensure Firewall Service is Enabled
+      service:
+        name: firewalld
+        enabled: yes
+        state: started
+    - name: Allow SSH Traffic
+      firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+    - name: Reload Firewall
+      command: firewall-cmd --reload
+
+    # Set Secure File Permissions
+    - name: Restrict Shadow File Access
+      file:
+        path: /etc/shadow
+        mode: '0600'
+    - name: Prevent Modifications to Critical System Files
+      command: chattr +i /etc/passwd
+
+    # Check SELinux Status
+    - name: Verify SELinux Status
+      command: sestatus
+      register: selinux_status
+    - debug:
+        msg: "{{ selinux_status.stdout_lines }}"
+
+    # Install AIDE for Intrusion Detection
+    - name: Install AIDE
+      yum:
+        name: aide
+        state: present
+    - name: Initialize AIDE Database
+      command: aide --init
+    - name: Move AIDE Database
+      command: mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+
+    # Update All Packages
+    - name: Perform System Updates
+      yum:
+        name: '*'
+        state: latest
