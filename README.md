@@ -162,8 +162,11 @@ sudo aide --check
 A strong Linux security baseline involves hardening access controls, monitoring logs, enforcing compliance policies, securing networks, and applying regular updates. Having hands-on experience in these areas ensures system security on RHEL 8 and other Linux distributions.
 
 **For advanced security**, consider using:
-✔ SELinux Policies
+✔ SELinux Policie
+
 ✔ Tripwire for Intrusion Detection
+
 ✔ Ansible for Security Automation
+
 ✔ SIEM Solutions (Splunk, ELK, Wazuh)
 
