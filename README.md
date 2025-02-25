@@ -6,7 +6,7 @@ To maintain a secure and stable Linux environment, a strong baseline configurati
 
 ## 1. Baseline Configuration for Linux Security
 
-A baseline configuration refers to the minimum security standards implemented on a Linux system to ensure integrity, confidentiality, and availability.
+A baseline configuration refers to the minimum security standards implemented on a Linux system to ensure **integrity, confidentiality, and availability**.
 
 ### 1.1. System Hardening Best Practices
 - Disable Unused Services
